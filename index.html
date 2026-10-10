@@ -117,9 +117,10 @@ let computerHand = [];
 let currentCard = null;
 let isPlayerTurn = true;
 let discardColorBeforeWild = '';
-let pendingWildCard = null; // 暂存打出的万能牌，等选完颜色再移除
+let pendingWildCard = null;
 let isChoosingColorForWild = false;
 let unoTimeoutId = null;
+let lastComputerPlayed = '无'; // 记录电脑最近操作
 
 const colors = ['red', 'green', 'blue', 'yellow'];
 const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '反转', '跳过', '+2'];
@@ -160,6 +161,7 @@ function initGame() {
   isPlayerTurn = true;
   isChoosingColorForWild = false;
   pendingWildCard = null;
+  lastComputerPlayed = '无';
   updateUI();
   checkWin();
 }
@@ -195,7 +197,8 @@ function updateUI() {
   });
   
   document.getElementById('playerCount').textContent = `你的手牌 (${playerHand.length}张)`;
-  document.getElementById('computerStatus').textContent = `电脑手牌：${computerHand.length}张`;
+  // 这里把对手的状态加回来了！
+  document.getElementById('computerStatus').textContent = `电脑手牌：${computerHand.length}张 | 最近操作：${lastComputerPlayed}`;
 }
 
 function playerPlay(index) {
@@ -226,8 +229,9 @@ function playerPlay(index) {
       if (checkWin()) return;
       setTimeout(() => {
         computerHand.push(...deck.splice(0, 2));
+        lastComputerPlayed = '被罚摸2张牌';
         updateUI();
-        isPlayerTurn = true; // 两人局，罚牌后直接轮到玩家
+        isPlayerTurn = true; 
         checkWin();
       }, 500);
       return;
@@ -261,7 +265,6 @@ function selectColor(color) {
     updateUI();
     setTimeout(computerTurn, 1000);
   } else if (currentCard.value === '万能牌+4') {
-    // 玩家打出+4，AI有50%概率质疑
     const aiHasColor = computerHand.some(c => c.color === discardColorBeforeWild);
     const aiWillChallenge = aiHasColor && Math.random() < 0.5;
     if (aiWillChallenge) {
@@ -274,11 +277,13 @@ function selectColor(color) {
       } else {
         alert('AI质疑失败！你手里没有' + discardColorBeforeWild + '色牌，AI摸6张！');
         computerHand.push(...deck.splice(0, 6));
+        lastComputerPlayed = '被罚摸6张牌';
         isPlayerTurn = true;
         updateUI();
       }
     } else {
       computerHand.push(...deck.splice(0, 4));
+      lastComputerPlayed = '被罚摸4张牌';
       updateUI();
       isPlayerTurn = false;
       setTimeout(computerTurn, 1000);
@@ -311,7 +316,7 @@ function computerTurn() {
     computerHand.splice(playableIndex, 1);
     
     if (card.color === 'black') {
-      discardColorBeforeWild = currentCard.color; // 记录出牌前的颜色，供玩家质疑
+      discardColorBeforeWild = currentCard.color;
       const colorCounts = { red: 0, green: 0, blue: 0, yellow: 0 };
       computerHand.forEach(c => { if (c.color !== 'black') colorCounts[c.color]++; });
       let bestColor = colors[0], maxCount = 0;
@@ -322,6 +327,8 @@ function computerTurn() {
     } else {
       currentCard = card;
     }
+    
+    lastComputerPlayed = `出了 ${getCardDisplay(card)}`; // 记录电脑出牌
     
     updateUI();
     if (checkWin()) return;
@@ -353,7 +360,9 @@ function computerTurn() {
     if (deck.length > 0) {
       const card = deck.pop();
       computerHand.push(card);
+      lastComputerPlayed = '摸了一张牌'; // 记录电脑摸牌
       updateUI();
+      
       if (card.color === currentCard.color || card.value === currentCard.value || card.color === 'black') {
         if (card.color === 'black') {
           discardColorBeforeWild = currentCard.color;
@@ -362,8 +371,10 @@ function computerTurn() {
           currentCard = card;
         }
         computerHand.splice(computerHand.length - 1, 1);
+        lastComputerPlayed = `摸牌后出了 ${getCardDisplay(card)}`; // 记录摸牌后出牌
         updateUI();
         if (checkWin()) return;
+        
         if (card.value === '反转' || card.value === '跳过') { setTimeout(computerTurn, 800); return; }
         if (card.value === '+2') {
           setTimeout(() => {
@@ -402,6 +413,7 @@ function challenge() {
   if (aiHasColor) {
     alert('质疑成功！AI手里确实有' + discardColorBeforeWild + '色牌，AI摸4张！');
     computerHand.push(...deck.splice(0, 4));
+    lastComputerPlayed = '被罚摸4张牌';
   } else {
     alert('质疑失败！AI手里没有' + discardColorBeforeWild + '色牌，你摸6张！');
     playerHand.push(...deck.splice(0, 6));
