@@ -68,7 +68,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
   <h2>📜 UNO 游戏规则</h2>
   <p><b>一、基本规则</b><br>1. 出牌必须和当前牌的颜色相同，或数字/符号相同。<br>2. 先出完手中所有牌的人获胜。<br>3. 无牌可出时，必须摸一张牌。</p>
   <p><b>二、罚牌规则</b><br>1. 罚牌<b>不能叠加</b>。打出+2，下家摸2张并跳过回合。打出+4，下家摸4张并跳过回合。<br>2. +4质疑：被+4攻击时，可选择“摸牌”或“质疑”。质疑成功（出牌者手里有当前颜色），出牌者摸4张；质疑失败（出牌者没有），被攻击者摸6张并跳过。</p>
-  <p><b>三、功能牌效果</b><br>1. 反转牌（反转）：在两人局中，效果等于跳过对方回合。<br>2. 跳过牌（跳过）：跳过对方回合。<br>3. 万能牌：出牌后指定下家出牌的颜色。<br>4. 万能牌+4：出牌后指定颜色，并罚下家摸4张。</p>
+  <p><b>三、功能牌效果</b><br>1. 反转牌（反转）：在两人局中，效果等于跳过对方回合。<br>2. 跳过牌（跳过）：跳过对方回合。<br>3. 万能牌：出牌后指定下家出牌的颜色。<br>4. 万能牌+4：出牌后指定颜色，并罚下家摸4张。被罚玩家可选择“摸牌”或“质疑”。质疑成功（出牌者手里有当前颜色），出牌者摸4张；质疑失败（出牌者没有），被攻击者摸6张并跳过。</p>
   <p><b>四、喊UNO</b><br>当你打出倒数第二张牌时，必须点击“UNO!”按钮，否则会被罚摸2张牌。</p>
   <button onclick="hideRules()">返回主界面</button>
 </div>
@@ -76,7 +76,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
 <div id="game-screen" class="screen">
   <div class="header">UNO 试水版</div>
   <div class="area">
-    <div class="status" id="computerStatus">电脑手牌：7张</div>
+    <div class="status" id="computerStatus">电脑手牌：7张 | 最近操作：无</div>
     <div class="pile">
       <div class="pile-card" id="pile">?</div>
     </div>
@@ -120,7 +120,7 @@ let discardColorBeforeWild = '';
 let pendingWildCard = null;
 let isChoosingColorForWild = false;
 let unoTimeoutId = null;
-let lastComputerPlayed = '无'; // 记录电脑最近操作
+let lastComputerPlayed = '无';
 
 const colors = ['red', 'green', 'blue', 'yellow'];
 const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '反转', '跳过', '+2'];
@@ -197,7 +197,6 @@ function updateUI() {
   });
   
   document.getElementById('playerCount').textContent = `你的手牌 (${playerHand.length}张)`;
-  // 这里把对手的状态加回来了！
   document.getElementById('computerStatus').textContent = `电脑手牌：${computerHand.length}张 | 最近操作：${lastComputerPlayed}`;
 }
 
@@ -231,7 +230,7 @@ function playerPlay(index) {
         computerHand.push(...deck.splice(0, 2));
         lastComputerPlayed = '被罚摸2张牌';
         updateUI();
-        isPlayerTurn = true; 
+        isPlayerTurn = true;
         checkWin();
       }, 500);
       return;
@@ -328,8 +327,7 @@ function computerTurn() {
       currentCard = card;
     }
     
-    lastComputerPlayed = `出了 ${getCardDisplay(card)}`; // 记录电脑出牌
-    
+    lastComputerPlayed = `出了 ${getCardDisplay(card)}`;
     updateUI();
     if (checkWin()) return;
     
@@ -350,6 +348,8 @@ function computerTurn() {
     }
     
     if (card.value === '+4') {
+      isPlayerTurn = false;
+      updateUI();
       setTimeout(() => {
         document.getElementById('challengePrompt').style.display = 'flex';
       }, 500);
@@ -360,7 +360,7 @@ function computerTurn() {
     if (deck.length > 0) {
       const card = deck.pop();
       computerHand.push(card);
-      lastComputerPlayed = '摸了一张牌'; // 记录电脑摸牌
+      lastComputerPlayed = '摸了一张牌';
       updateUI();
       
       if (card.color === currentCard.color || card.value === currentCard.value || card.color === 'black') {
@@ -371,7 +371,7 @@ function computerTurn() {
           currentCard = card;
         }
         computerHand.splice(computerHand.length - 1, 1);
-        lastComputerPlayed = `摸牌后出了 ${getCardDisplay(card)}`; // 记录摸牌后出牌
+        lastComputerPlayed = `摸牌后出了 ${getCardDisplay(card)}`;
         updateUI();
         if (checkWin()) return;
         
@@ -385,6 +385,8 @@ function computerTurn() {
           return;
         }
         if (card.value === '+4') {
+          isPlayerTurn = false;
+          updateUI();
           setTimeout(() => { document.getElementById('challengePrompt').style.display = 'flex'; }, 500);
           return;
         }
