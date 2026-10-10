@@ -230,7 +230,7 @@ function playerPlay(index) {
         computerHand.push(...deck.splice(0, 2));
         lastComputerPlayed = '被罚摸2张牌';
         updateUI();
-        isPlayerTurn = true;
+        isPlayerTurn = true; // 对手被跳过，你继续出牌
         checkWin();
       }, 500);
       return;
@@ -284,8 +284,8 @@ function selectColor(color) {
       computerHand.push(...deck.splice(0, 4));
       lastComputerPlayed = '被罚摸4张牌';
       updateUI();
-      isPlayerTurn = false;
-      setTimeout(computerTurn, 1000);
+      isPlayerTurn = true; // 对手被跳过，你继续出牌
+      checkWin();
     }
   }
 }
@@ -341,8 +341,8 @@ function computerTurn() {
         alert('AI打出了+2，你摸2张牌并跳过回合！');
         playerHand.push(...deck.splice(0, 2));
         updateUI();
-        isPlayerTurn = true;
-        checkWin();
+        isPlayerTurn = false; // 你被跳过，AI继续出牌
+        setTimeout(computerTurn, 1000);
       }, 500);
       return;
     }
@@ -380,7 +380,9 @@ function computerTurn() {
           setTimeout(() => {
             alert('AI打出了+2，你摸2张牌并跳过回合！');
             playerHand.push(...deck.splice(0, 2));
-            updateUI(); isPlayerTurn = true; checkWin();
+            updateUI(); 
+            isPlayerTurn = false; 
+            setTimeout(computerTurn, 1000);
           }, 500);
           return;
         }
@@ -404,9 +406,9 @@ function computerTurn() {
 function acceptDraw() {
   document.getElementById('challengePrompt').style.display = 'none';
   playerHand.push(...deck.splice(0, 4));
-  isPlayerTurn = true;
+  isPlayerTurn = false; // 你被跳过，AI继续出牌
   updateUI();
-  checkWin();
+  setTimeout(computerTurn, 1000);
 }
 
 function challenge() {
@@ -416,13 +418,16 @@ function challenge() {
     alert('质疑成功！AI手里确实有' + discardColorBeforeWild + '色牌，AI摸4张！');
     computerHand.push(...deck.splice(0, 4));
     lastComputerPlayed = '被罚摸4张牌';
+    isPlayerTurn = true; // AI被跳过，你继续出牌
+    updateUI();
+    checkWin();
   } else {
     alert('质疑失败！AI手里没有' + discardColorBeforeWild + '色牌，你摸6张！');
     playerHand.push(...deck.splice(0, 6));
+    isPlayerTurn = false; // 你被跳过，AI继续出牌
+    updateUI();
+    setTimeout(computerTurn, 1000);
   }
-  isPlayerTurn = true;
-  updateUI();
-  checkWin();
 }
 
 function callUno() {
