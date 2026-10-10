@@ -41,19 +41,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
   <button class="btn" onclick="location.reload()">重新开始</button>
 </div>
 <script>
-// 这里开始写逻辑
-</script>
-</body>
-</html>
-let deck = [];
+ let deck = [];
 let playerHand = [];
 let computerHand = [];
 let currentCard = null;
 let isPlayerTurn = true;
-
 const colors = ['red', 'green', 'blue', 'yellow'];
 const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-
 function initGame() {
     deck = [];
     colors.forEach(c => {
@@ -66,21 +60,17 @@ function initGame() {
         deck.push({ color: 'black', value: 'W' });
     }
     deck = shuffle(deck);
-    
     playerHand = deck.splice(0, 7);
     computerHand = deck.splice(0, 7);
-    
     currentCard = deck.pop();
     while (currentCard.color === 'black') {
         deck.unshift(currentCard);
         currentCard = deck.pop();
     }
-    
     isPlayerTurn = true;
     updateUI();
     checkWin();
 }
-
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -88,12 +78,10 @@ function shuffle(array) {
     }
     return array;
 }
-
 function updateUI() {
     const pileEl = document.getElementById('pile');
     pileEl.textContent = currentCard.value;
     pileEl.className = 'pile-card ' + currentCard.color;
-    
     const handDiv = document.getElementById('playerHand');
     handDiv.innerHTML = '';
     playerHand.forEach((card, index) => {
@@ -101,7 +89,6 @@ function updateUI() {
         cardDiv.className = 'card ' + card.color;
         if (card.value === 'W') cardDiv.classList.add('black');
         cardDiv.textContent = card.value;
-        
         const canPlay = isPlayerTurn && (card.color === currentCard.color || card.value === currentCard.value || card.color === 'black');
         if (!canPlay) {
             cardDiv.classList.add('disabled');
@@ -110,33 +97,26 @@ function updateUI() {
         }
         handDiv.appendChild(cardDiv);
     });
-    
     document.getElementById('playerCount').textContent = `你的手牌 (${playerHand.length}张)`;
     document.getElementById('status').textContent = isPlayerTurn ? '你的回合' : '电脑回合';
 }
-
 function playerPlay(index) {
     if (!isPlayerTurn) return;
     const card = playerHand[index];
-    
     if (card.color === currentCard.color || card.value === currentCard.value || card.color === 'black') {
         currentCard = card;
         playerHand.splice(index, 1);
-        
         if (card.color === 'black') {
             const randomColor = colors[Math.floor(Math.random() * colors.length)];
             currentCard = { color: randomColor, value: 'W' };
         }
-        
         updateUI();
         if (checkWin()) return;
-        
         isPlayerTurn = false;
         updateUI();
         setTimeout(computerTurn, 1000);
     }
 }
-
 function playerDraw() {
     if (!isPlayerTurn || deck.length === 0) return;
     const card = deck.pop();
@@ -145,7 +125,6 @@ function playerDraw() {
     updateUI();
     setTimeout(computerTurn, 1000);
 }
-
 function computerTurn() {
     let playableIndex = -1;
     for (let i = 0; i < computerHand.length; i++) {
@@ -155,12 +134,10 @@ function computerTurn() {
             break;
         }
     }
-    
     if (playableIndex !== -1) {
         const card = computerHand[playableIndex];
         currentCard = card;
         computerHand.splice(playableIndex, 1);
-        
         if (card.color === 'black') {
             const colorCounts = { red: 0, green: 0, blue: 0, yellow: 0 };
             computerHand.forEach(c => {
@@ -176,7 +153,6 @@ function computerTurn() {
             }
             currentCard = { color: bestColor, value: 'W' };
         }
-        
         updateUI();
         if (checkWin()) return;
     } else {
@@ -195,11 +171,9 @@ function computerTurn() {
             }
         }
     }
-    
     isPlayerTurn = true;
     updateUI();
 }
-
 function checkWin() {
     if (playerHand.length === 0) {
         document.getElementById('resultText').textContent = '恭喜你赢了！';
@@ -213,8 +187,7 @@ function checkWin() {
     }
     return false;
 }
-
 initGame();
-    </script>
-    </body>
-    </html>
+</script>
+</body>
+</html>
